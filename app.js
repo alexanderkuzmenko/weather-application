@@ -28,6 +28,6 @@ app.get('/weather/:city', async function (req, res) {
     res.render('weather.hbs', {city, weather, cities})
 })
 
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log("Server is listening")
 })
