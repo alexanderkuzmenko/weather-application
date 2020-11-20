@@ -1,5 +1,8 @@
 [
   {"city": "Kyiv"},
   {"city": "Zhytomyr"},
-  {"city": "Vinnytsya"}
+  {"city": "Vinnytsya"},
+   {"city": "New York"},
+   {"city": "Varshava"},
+   {"city": "London"}
 ]
