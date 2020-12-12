@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <h2>New City</h2>
+    <form name="cityForm" id="cityForm">
+        <input type="hidden" name="id" value="0">
+        <div class="form-group">
+            <label for="cityName">City Name</label>
+            <input class="form-control" type="text" id="cityName" name="cityName">
+        </div>
+        <div class="form-group">
+            <label for="cityNameUA">City Name UA</label>
+            <input class="form-control" type="text" id="cityNameUA" name="cityNameUA">
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </div>
+    </form>
+    <table id="cityList" class="table table-bordered">
+        <tr>
+            <th>Id</th>
+            <th>City Name</th>
+            <th>City Name UA</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </table>
+</div>
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script>
+    function getCities() {
+        $.ajax({
+            url: "/cities",
+            type: "GET",
+            contentType: "application/json",
+            success: function(response) {
+                let rows = [];
+                const cities = response.cities
+                for (let i = 0; i < cities.length; i++) {
+                    rows += row(cities[i]);
+                }
+                $("#cityList").append(rows);
+            }
+        });
+    }
+    function getCity(id) {
+        $.ajax({
+            url: "/cities/" + id,
+            type: "GET",
+            contentType: "application/json",
+            success: function(city) {
+                let form = document.forms.cityForm;
+                form.elements.id.value = city._id;
+                form.elements.cityName.value = city.name;
+                form.elements.cityNameUA.value = city.name_ua;
+            }
+        });
+    }
+    function addCity(city) {
+        $.ajax({
+            url: "/cities",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                city
+            }),
+            success: function(city) {
+                $("#cityList").append(row(city));
+                resetForm();
+            }
+        });
+    }
+    function updateCity(id, city) {
+        $.ajax({
+            url: "/cities",
+            method: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify({
+                id,
+                city
+            }),
+            success: function(city) {
+                $(`tr[data-rowid='${city._id}']`).replaceWith(row(city));
+                resetForm();
+            }
+        });
+    }
+    function deleteCity(id) {
+        $.ajax({
+            url: "/cities/" + id,
+            method: "DELETE",
+            contentType: "application/json",
+            success: function(city) {
+                $(`tr[data-rowid='${city._id}']`).remove();
+            }
+        });
+    }
+    function row(city) {
+        return `<tr data-rowid=${city._id}>
+                    <td>${city._id}</td>
+                    <td>${city.name}</td>
+                    <td>${city.name_ua}</td>
+                    <td><button class='btn btn-sm btn-primary editCity' data-id=${city._id}>Редагувати</button></td>
+                    <td><button class='btn btn-sm btn-primary removeCity' data-id=${city._id}>Видалити</button></td>
+                </tr>`;
+    }
+
+    function resetForm() {
+        let form = document.forms["cityForm"];
+        form.reset();
+        form.elements["id"].value = 0;
+    }
+
+    $("#cityForm").submit(function(e) {
+        e.preventDefault();
+        let id = this.elements["id"].value;
+        const city = {
+            name: this.elements["cityName"].value,
+            name_ua: this.elements["cityNameUA"].value
+        }
+        if (id == 0) {
+            addCity(city);
+        } else {
+            updateCity(id, city);
+        }
+    });
+    $("body").on("click", ".removeCity", function() {
+        let id = $(this).data("id");
+        deleteCity(id);
+    });
+    $("body").on("click", ".editCity", function() {
+        let id = $(this).data("id");
+        getCity(id);
+    })
+    getCities();
+</script>
+</body>
+</html>
+
